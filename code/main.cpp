@@ -198,6 +198,68 @@ void printAvailableLeaps(vector<node> availableMoves) {
         }
     }
 }
+bool checkmove(vector<pair<node,node>> res,int fromrow,int fromcolumn,int torow,int tocolumn ) {
+    //
+
+    for (int i = 0; i < res.size(); i++) {
+        if(res[i].first.row==fromrow&&res[i].first.column==fromcolumn&&res[i].second.row==torow&&res[i].second.column==tocolumn){
+            return true;
+        }
+    }
+    return false;
+}
+//بستخدمها علشان اعرف اماكن الون دا فين في البدايه
+vector<node> GetColorCord(char color,vector<node>& chooseboard) {
+    vector<node> Result;
+    for (int i = 0; i < chooseboard.size(); i++) {
+        if (chooseboard[i].color == color) {
+            Result.emplace_back(chooseboard[i]);
+        }
+    }
+    return Result;
+}
+const vector<pair<char,vector<node>>>Homes={{'R',GetColorCord('G',board)},{'G',GetColorCord('R',board)},{'I',GetColorCord('Y',board)},{'Y',GetColorCord('I',board)},
+                                            {'B',GetColorCord('O',board)},{'O',GetColorCord('B',board)}};
+//بتجيب النقطة العكس الي المفروض اروحلها عشان اقيس عليها في المينيماكس للون معين
+vector<pair<char,pair<int,int>>> FinalColor={{'R',{17,5}},{'I',{13,10}},{'G',{1,13}},
+                                             {'O',{13,4}},{'B',{5,17}},{'Y',{5,5}}};
+pair<int,int> finall(char color){
+    pair<int,int> Result;
+    for(int i=0;i<FinalColor.size();i++){
+        if(color==FinalColor[i].first){Result=FinalColor[i].second;break;}
+    }
+    return Result;
+}bool checkmove(vector<pair<node,node>> res,int fromrow,int fromcolumn,int torow,int tocolumn ) {
+
+    for (int i = 0; i < res.size(); i++) {
+        if(res[i].first.row==fromrow&&res[i].first.column==fromcolumn&&res[i].second.row==torow&&res[i].second.column==tocolumn){
+            return true;
+        }
+    }
+    return false;
+}
+//بستخدمها علشان اعرف اماكن الون دا فين في البدايه
+vector<node> GetColorCord(char color,vector<node>& chooseboard) {
+    vector<node> Result;
+    for (int i = 0; i < chooseboard.size(); i++) {
+        if (chooseboard[i].color == color) {
+            Result.emplace_back(chooseboard[i]);
+        }
+    }
+    return Result;
+}
+const vector<pair<char,vector<node>>>Homes={{'R',GetColorCord('G',board)},{'G',GetColorCord('R',board)},{'I',GetColorCord('Y',board)},{'Y',GetColorCord('I',board)},
+                                            {'B',GetColorCord('O',board)},{'O',GetColorCord('B',board)}};
+//بتجيب النقطة العكس الي المفروض اروحلها عشان اقيس عليها في المينيماكس للون معين
+vector<pair<char,pair<int,int>>> FinalColor={{'R',{17,5}},{'I',{13,10}},{'G',{1,13}},
+                                             {'O',{13,4}},{'B',{5,17}},{'Y',{5,5}}};
+pair<int,int> finall(char color){
+    pair<int,int> Result;
+    for(int i=0;i<FinalColor.size();i++){
+        if(color==FinalColor[i].first){Result=FinalColor[i].second;break;}
+    }
+    return Result;
+}
 int main() {
     FAST_IO
     printAvailableMoves(availableMoves(5, 12));

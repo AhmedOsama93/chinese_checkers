@@ -273,6 +273,94 @@ pair<int,int> finall(char color){
     }
     return Result;
 }
+vector<pair<char,char>> Opposite={{'R','G'},{'G','R'},{'O','B'},{'B','O'},{'Y','I'},{'I','Y'}};
+//تجيب مين اللون الي عكس اتجاهي
+char oppositeColor(char color) {
+    char OColor = ' ';
+    for (auto & i : Opposite) {
+        if (i.first == color) {
+            OColor =i.second;
+            break;
+        }
+    }
+    return OColor;
+}
+//بتجيب النقط بتاعة لون معين بعيدة قد اية عن النقطة الي في راس المثلث
+double GetHowFar(char color,vector<node>& chooseboard){
+    //get green how far: sum(|how far from red|) - get green how far sum(|how far from green|)
+    vector<node>R=GetColorCord(color,chooseboard);
+    char opposite= oppositeColor(color);
+    pair<int,int> Final= finall(opposite);
+    double howfar=0.0;
+    if(color=='R'||color=='G'||color=='Y'||color=='I') {
+        for (int i = 0; i < R.size(); i++) {
+            howfar += abs(R[i].row - Final.first);
+            //numberofminimax=(Gethowfar(color)+-----------)-(Gethowfar(color)+--------)
+        }
+    }else{
+        for (int i = 0; i < R.size(); i++) {
+            howfar += abs(R[i].column - Final.second);
+            //numberofminimax=(Gethowfar(color)+-----------)-(Gethowfar(color)+--------)
+        }
+    }
+    return howfar;
+}
+// حركة اللاعيب الي هيخترها
+void Playerdecidetomove(vector<node>& chooseboard) {
+    vector<pair<int, int>> greenposmove;
+    vector<pair<int, int>> indigoposmove;
+    vector<pair<int, int>> blueposmove;
+    greenposmove = Possiblemoves('G',chooseboard);
+    indigoposmove= Possiblemoves('I',chooseboard);
+    blueposmove= Possiblemoves('B',chooseboard);
+    vector<pair<node, node>> Result;
+//i_vec1.insert(i_vec1.end(), i_vec2.begin(), i_vec2.end())
+    Result.insert(Result.end(),avialableNodes(greenposmove,chooseboard).begin(),avialableNodes(greenposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(indigoposmove,chooseboard).begin(),avialableNodes(indigoposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(blueposmove,chooseboard).begin(),avialableNodes(blueposmove,chooseboard).end());
+
+    for (int i = 0; i < Result.size(); i++) {
+        cout << "(" << Result[i].second.row << ',' << Result[i].second.column << ',' << Result[i].second.color
+             << ")" << endl;
+
+        //iterate possible move and row and columns given by user should match one of those possible moves
+        int torow, tocolumn;
+        int fromrow, fromcolumn;
+        cout << "Please Enter from Node and to node " << endl;
+        cin >> fromrow >> fromcolumn >> torow >> tocolumn;
+        if (checkmove(Result, fromrow, fromcolumn, torow, tocolumn)) {
+            move(fromrow, fromcolumn, torow, tocolumn,chooseboard);
+        }
+    }
+
+
+}
+//هل اللون الفلاني وصل للجول ولا لا
+bool colorgoal(char color){
+    bool flag=false;
+    vector<node> minegoal;
+    for(int i=0;i<Homes.size();i++){
+        if(color==Homes[i].first){
+            minegoal=Homes[i].second;
+        }
+    }
+    for(int i=0;i<minegoal.size();i++){
+        if(minegoal[i].color==color){
+            flag=true;
+        }else{
+            flag=false;
+            break;
+        }
+    }
+    return flag;
+}
+//هل البلاير دة كسب ولا لا
+bool Winner(char color1,char color2,char color3){
+    if(colorgoal(color1)&& colorgoal(color2)&& colorgoal(color3)){
+        return true;
+    }else
+        return false;
+}
 int main() {
     FAST_IO
     printAvailableMoves(availableMoves(5, 12));

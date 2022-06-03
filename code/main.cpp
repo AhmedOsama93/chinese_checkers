@@ -361,6 +361,103 @@ bool Winner(char color1,char color2,char color3){
     }else
         return false;
 }
+
+//هل في فايز ولا لا
+double checkWinner(){
+    bool X=Winner('Y','R','O');
+    bool Y=Winner('B','G','I');
+    if(X){return 1;}
+    else if(Y){return 2;}
+    else{return 0;}
+}
+vector<pair<node, node>> GetAllValidToMoveAgent(vector<node>& chooseboard){
+    vector<pair<int, int>> redposmove;
+    vector<pair<int, int>> yellowposmove;
+    vector<pair<int, int>> orangeposmove;
+    redposmove = Possiblemoves('R',chooseboard);
+    yellowposmove= Possiblemoves('Y',chooseboard);
+    orangeposmove= Possiblemoves('O',chooseboard);
+    vector<pair<node, node>> Result;
+//i_vec1.insert(i_vec1.end(), i_vec2.begin(), i_vec2.end())
+    Result.insert(Result.end(),avialableNodes(redposmove,chooseboard).begin(),avialableNodes(redposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(yellowposmove,chooseboard).begin(),avialableNodes(yellowposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(orangeposmove,chooseboard).begin(),avialableNodes(orangeposmove,chooseboard).end());
+    return Result;
+}
+vector<pair<node, node>> GetAllValidToMovePlayer(vector<node>& chooseboard){
+    vector<pair<int, int>> redposmove;
+    vector<pair<int, int>> yellowposmove;
+    vector<pair<int, int>> orangeposmove;
+    redposmove = Possiblemoves('G',chooseboard);
+    yellowposmove= Possiblemoves('B',chooseboard);
+    orangeposmove= Possiblemoves('I',chooseboard);
+    vector<pair<node, node>> Result;
+//i_vec1.insert(i_vec1.end(), i_vec2.begin(), i_vec2.end())
+    Result.insert(Result.end(),avialableNodes(redposmove,chooseboard).begin(),avialableNodes(redposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(yellowposmove,chooseboard).begin(),avialableNodes(yellowposmove,chooseboard).end());
+    Result.insert(Result.end(),avialableNodes(orangeposmove,chooseboard).begin(),avialableNodes(orangeposmove,chooseboard).end());
+    return Result;
+}
+
+double scoree(vector<node>& boardd){
+    return( (GetHowFar('R',boardd)+ GetHowFar('Y',boardd)+ GetHowFar('O',boardd))-
+            (GetHowFar('G',boardd)+ GetHowFar('B',boardd)+ GetHowFar('I',boardd)));
+}
+
+double  minimax(int depth,bool IsMaximizing, vector<node>& boardd ,bool firstTime=true){
+
+    double result = checkWinner();
+    if(depth == 0 || result != 0) {
+        return result;
+    }
+    if(IsMaximizing){
+        double finalScore=-1000000000;
+        int fromrow,fromcolumn,torow,tocolumn;
+        vector<pair<node,node>> Agentmoves=GetAllValidToMoveAgent(boardd);
+        for(int i=0;i<Agentmoves.size();i++){
+            move(Agentmoves[i].first.row,Agentmoves[i].first.column,
+                 Agentmoves[i].second.row,Agentmoves[i].second.column,boardd);
+            double score= scoree(boardd);
+            minimax(depth-1,false,boardd, false);
+            if(finalScore<score){
+                finalScore=score;
+                fromrow=Agentmoves[i].first.row;
+                fromcolumn=Agentmoves[i].first.column;
+                tocolumn=Agentmoves[i].second.column;
+                torow=Agentmoves[i].second.row;
+            }
+        }
+        if(firstTime){
+            move(fromrow,fromcolumn,torow,tocolumn,board);
+        }
+        return finalScore;
+    }else{
+        double finalScore=100000000;
+        int fromrow,fromcolumn,torow,tocolumn;
+        vector<pair<node,node>> Playermoves=GetAllValidToMovePlayer(boardd);
+        for(int i=0;i<Playermoves.size();i++){
+            move(Playermoves[i].first.row,Playermoves[i].first.column,
+                 Playermoves[i].second.row,Playermoves[i].second.column,boardd);
+            double score=scoree(boardd);
+            minimax(depth-1,true,boardd, false);
+            if(finalScore>score){
+                finalScore=score;
+                fromrow=Playermoves[i].first.row;
+                fromcolumn=Playermoves[i].first.column;
+                tocolumn=Playermoves[i].second.column;
+                torow=Playermoves[i].second.row;
+            }
+        }
+        if(firstTime){
+            move(fromrow,fromcolumn,torow,tocolumn,board);
+        }
+        return finalScore;
+    }
+
+
+
+
+}
 int main() {
     FAST_IO
     printAvailableMoves(availableMoves(5, 12));

@@ -188,6 +188,19 @@ void printAvailableMoves(vector<node>availableMoves){
 }
 
 
+vector<pair<char,char>> Opposite={{'R','G'},{'G','R'},{'O','B'},{'B','O'},{'Y','I'},{'I','Y'}};
+//تجيب مين اللون الي عكس اتجاهي
+char oppositeColor(char color) {
+    char OColor = ' ';
+    for (auto & i : Opposite) {
+        if (i.first == color) {
+            OColor =i.second;
+            break;
+        }
+    }
+    return OColor;
+}
+
 void printAvailableLeaps(vector<node> availableMoves) {
     cout << "Available Leaps are : \n";
     for (int i = 0; i < 6; ++i) {

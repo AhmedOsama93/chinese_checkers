@@ -1,3 +1,9 @@
+//Ahmed Osama Mahmoud 20190015
+//Ahmed Sameh Mohammed 20190032
+//Abdelrahman Hussain Mohamed 20190289
+//Mahmoud osama othman 20190491
+//Walid Mohamed Ibrahim 20190614
+
 #include <iostream>
 #include "windows.h"
 #include <vector>
@@ -18,7 +24,12 @@ vector<node>loadBoard(){
     vector<node>board(122);
     int i=0;
     ifstream boardFile;
-    boardFile.open("input.txt", ios::in);
+    if(colors==6){
+        boardFile.open("input.txt", ios::in);
+    }
+    else{
+        boardFile.open("input2.txt", ios::in);
+    }
     while(i<121) {
         char state[6];
         boardFile.read(state, 5);
@@ -34,7 +45,10 @@ vector<node>loadBoard(){
     }
     return board;
 }
-vector<node>board=loadBoard();
+vector<node>board;
+void startBoard(){
+    board =loadBoard();
+}
 //بيرجع الون بتاع صف وعمود معينين
 char myColor(int curRow, int curColumn,vector<node>& chooseboard) {
     for (int i = 0; i < chooseboard.size(); ++i) {
@@ -264,7 +278,7 @@ void setColor(char color){
     }else if(color=='I'){
         SetColor(5);
     }else if(color=='O'){
-        SetColor(FOREGROUND_RED | FOREGROUND_GREEN);
+        SetColor(12|14);
     }else if(color=='R'){
         SetColor(4);
     }else if(color=='G'){
@@ -439,7 +453,6 @@ double GetHowFar(char color,vector<node>& chooseboard){
     return howfar;
 }
 
-// حركة اللاعيب الي هيخترها
 void  Playerdecidetomove(vector<node>& chooseboard) {
     vector<pair<int, int>> greenposmove;
     vector<pair<int, int>> indigoposmove;
@@ -456,23 +469,31 @@ void  Playerdecidetomove(vector<node>& chooseboard) {
     Result.insert(Result.end(),indigoMoves.begin(),indigoMoves.end());
     Result.insert(Result.end(),blueMoves.begin(),blueMoves.end());
 
+    cout<<"Valid Moves:"<<endl;
+    cout<<"---------------------------------"<<endl;
     for (int i = 0; i < Result.size(); i++) {
         setColor(chooseboard[i].color);
-        cout << "(" << Result[i].second.row << ',' << Result[i].second.column << ',' << Result[i].second.color
-             << ")" << endl;
-
+        cout<<"From "<<"(" << Result[i].first.row << ',' << Result[i].first.column
+            << ")"<<" To "<< "(" << Result[i].second.row << ',' << Result[i].second.column << ',' << Result[i].second.color
+            << ")" << endl<<std::flush;
+    }
+    cout<<"------------------------------------"<<endl;
+    printboard(board);
+    while(true){
         //iterate possible move and row and columns given by user should match one of those possible moves
         int torow, tocolumn;
         int fromrow, fromcolumn;
+        setColor('W');
         cout << "Please Enter from Node and to node " << endl;
         cin >> fromrow >> fromcolumn >> torow >> tocolumn;
         if (checkmove(Result, fromrow, fromcolumn, torow, tocolumn)) {
             move(fromrow, fromcolumn, torow, tocolumn,chooseboard);
             break;//change
+        }else{
+            cout<<"Please Play Valid move"<<endl;
+            cout<<"-----------------------------"<<endl;
         }
     }
-
-
 }
 
 //هل اللون الفلاني وصل للجول ولا لا
@@ -520,12 +541,14 @@ vector<pair<node, node>> GetAllValidToMoveAgent(vector<node>& chooseboard){
     vector<pair<node, node>> Result;
 //i_vec1.insert(i_vec1.end(), i_vec2.begin(), i_vec2.end())
     vector<pair<node, node>> redMoVes=avialableNodes(redposmove,chooseboard);//changed
-    vector<pair<node, node>> yellowMoVes=avialableNodes(yellowposmove,chooseboard);
-    vector<pair<node, node>> orangeMoVes=avialableNodes(orangeposmove,chooseboard);
+    yellowposmove= Possiblemoves('Y',chooseboard);
+    orangeposmove= Possiblemoves('O',chooseboard);
+
     Result.insert(Result.end(),redMoVes.begin(),redMoVes.end());
     if(colors==6){
-        yellowposmove= Possiblemoves('Y',chooseboard);
-        orangeposmove= Possiblemoves('O',chooseboard);
+        vector<pair<node, node>> yellowMoVes=avialableNodes(yellowposmove,chooseboard);
+        vector<pair<node, node>> orangeMoVes=avialableNodes(orangeposmove,chooseboard);
+
         Result.insert(Result.end(),yellowMoVes.begin(),yellowMoVes.end());
         Result.insert(Result.end(),orangeMoVes.begin(),orangeMoVes.end());
     }
@@ -544,6 +567,7 @@ vector<pair<node, node>> GetAllValidToMovePlayer(vector<node>& chooseboard){
     Result.insert(Result.end(),redMoves.begin(),redMoves.end());
 
 //i_vec1.insert(i_vec1.end(), i_vec2.begin(), i_vec2.end())
+
     if(colors==6){
         vector<pair<node, node>> yellowMoves=avialableNodes(yellowposmove,chooseboard);
         vector<pair<node, node>> orangeMoves=avialableNodes(orangeposmove,chooseboard);
@@ -557,8 +581,61 @@ double scoree(vector<node>& boardd){
     return( (GetHowFar('R',boardd)+ GetHowFar('Y',boardd)+ GetHowFar('O',boardd))-
             (GetHowFar('G',boardd)+ GetHowFar('B',boardd)+ GetHowFar('I',boardd)));
 }
+double  minimax(int depth,bool IsMaximizing, vector<node> boardd ,bool firstTime=true){
 
-double  minimax(int depth,bool IsMaximizing, vector<node> boardd , double bestScore,bool firstTime=true){
+    double result = checkWinner();
+    if(depth == 0 || result != 0) {
+        return result;
+    }
+    if(IsMaximizing){
+        double finalScore=-1000000000;
+        int fromrow,fromcolumn,torow,tocolumn;
+        vector<pair<node,node>> Agentmoves=GetAllValidToMoveAgent(boardd);
+        for(int i=0;i<Agentmoves.size();i++){
+            vector<node> tempBoard =boardd;
+            move(Agentmoves[i].first.row,Agentmoves[i].first.column,
+                 Agentmoves[i].second.row,Agentmoves[i].second.column,tempBoard);
+            double score= scoree(tempBoard);
+
+            minimax(depth-1,false,tempBoard, false);
+            if(finalScore<score){
+                finalScore=score;
+                fromrow=Agentmoves[i].first.row;
+                fromcolumn=Agentmoves[i].first.column;
+                tocolumn=Agentmoves[i].second.column;
+                torow=Agentmoves[i].second.row;
+            }
+        }
+        if(firstTime){
+            move(fromrow,fromcolumn,torow,tocolumn,board);
+        }
+        return finalScore;
+    }else{
+        double finalScore=100000000;
+        int fromrow,fromcolumn,torow,tocolumn;
+        vector<pair<node,node>> Playermoves=GetAllValidToMovePlayer(boardd);
+        for(int i=0;i<Playermoves.size();i++){
+            vector<node> tempBoard =boardd;
+            move(Playermoves[i].first.row,Playermoves[i].first.column,
+                 Playermoves[i].second.row,Playermoves[i].second.column,tempBoard);
+            double score=scoree(tempBoard);
+            minimax(depth-1,true,tempBoard, false);
+            if(finalScore>score){
+                finalScore=score;
+                fromrow=Playermoves[i].first.row;
+                fromcolumn=Playermoves[i].first.column;
+                tocolumn=Playermoves[i].second.column;
+                torow=Playermoves[i].second.row;
+            }
+        }
+        if(firstTime){
+            move(fromrow,fromcolumn,torow,tocolumn,board);
+        }
+        return finalScore;
+    }
+
+}
+double  alphaBeta(int depth,bool IsMaximizing, vector<node> boardd , double bestScore,bool firstTime=true){
 
     double result = checkWinner();
     if(depth == 0 || result != 0) {
@@ -573,8 +650,8 @@ double  minimax(int depth,bool IsMaximizing, vector<node> boardd , double bestSc
             move(Agentmoves[i].first.row,Agentmoves[i].first.column,
                  Agentmoves[i].second.row,Agentmoves[i].second.column,tempBoard);
 //            double score= scoree(tempBoard);
-            double currntScore = minimax(depth-1,false,tempBoard, finalScore,false);
-            if(!firstTime && currntScore>bestScore){
+            double currntScore = alphaBeta(depth-1,false,tempBoard, finalScore,false);
+            if(!firstTime && finalScore>bestScore){
                 break;
             }
             if(finalScore<currntScore){
@@ -598,8 +675,8 @@ double  minimax(int depth,bool IsMaximizing, vector<node> boardd , double bestSc
             move(Playermoves[i].first.row,Playermoves[i].first.column,
                  Playermoves[i].second.row,Playermoves[i].second.column,tempBoard);
 //            double score=scoree(tempBoard);
-            double currntScore = minimax(depth-1,true,tempBoard ,finalScore,false);
-            if(!firstTime && currntScore<bestScore){
+            double currntScore = alphaBeta(depth-1,true,tempBoard ,finalScore,false);
+            if(!firstTime && finalScore<bestScore){
                 break;
             }
             if(finalScore>currntScore){
@@ -635,24 +712,39 @@ int main() {
             cout<<"Wrong input"<<endl;
         }
     }
+    startBoard();
     int depth;
     while (true){
         cout<<"please Choice Level Easy(1) Medium(3) Hard(5)"<<endl;
         cin>>depth;
-        if(depth>0 && depth<5){
+        if(depth>0 && depth<6){
+            break;
+        }
+        else
+            cout<<"Wrong input"<<endl;
+    }
+    int algo;
+    while (true){
+        cout<<"(1)MinMax"<<endl;
+        cout<<"(2)AlphaBeta"<<endl;
+        cin>>algo;
+        if(algo==1 || algo==2){
             break;
         }
         else
             cout<<"Wrong input"<<endl;
     }
     while(true){
-        printboard(board);
+        //printboard(board);
         Playerdecidetomove(board);
         if(checkWinner()==2){cout<<"Player is Winnner"<<endl;break;}
-        minimax(depth,true,board,0.0);
+        if(algo==1){
+            minimax(depth,true,board);
+        }else{
+            alphaBeta(depth,true,board,0.0);
+        }
         if(checkWinner()==1){cout<<"Computer is Winnner"<<endl;break;}
-//        printboard(board);
+        printboard(board);
     }
-
     return 0;
 }
